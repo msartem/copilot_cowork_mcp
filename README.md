@@ -2,7 +2,7 @@
 
 An MCP server that connects [GitHub Copilot CLI](https://docs.github.com/copilot/concepts/agents/about-copilot-cli) to **Microsoft 365 Copilot** (Cowork).
 
-Ask questions about your emails, calendar, Teams messages, meetings, documents, contacts, and org data — all from the terminal. Send Teams messages, emails, and perform other actions too.
+Ask questions about your emails, calendar, Teams messages, meetings, documents, contacts, and org data — all from the terminal. Send Teams messages, emails, and even images as attachments.
 
 ## Requirements
 
@@ -39,6 +39,8 @@ Ask questions about your emails, calendar, Teams messages, meetings, documents, 
    What meetings do I have tomorrow?
    Send a Teams message to myself saying hello from CLI
    Send an email to John saying the report is ready
+   Send the image /path/to/chart.png to my team on Teams
+   Email the screenshot /path/to/screenshot.png to Sarah
    ```
 
 After first sign-in, auth is silent via cached refresh tokens (~90 day
@@ -65,6 +67,7 @@ You → Copilot CLI → cowork MCP → M365 Copilot → your M365 data
 |------|-------------|
 | `cowork_sign_in` | Sign in to Microsoft 365 (opens Edge, one-time) |
 | `cowork_send_message` | Send a message to M365 Copilot (multi-turn) |
+| `cowork_send_image` | Send an image with optional text (Teams, email attachments) |
 | `cowork_action_approve` | Approve and execute a pending action (send email, Teams message, etc.) |
 | `cowork_new_session` | Start a fresh conversation |
 | `cowork_session_info` | Show session state (user, runtime, turn count) |

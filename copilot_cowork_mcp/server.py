@@ -20,8 +20,8 @@ import os
 import time
 from fastmcp import FastMCP
 
-from client import CoworkSession
-from auth import get_token, get_cached_account
+from .client import CoworkSession
+from .auth import get_token, get_cached_account
 
 # ── MCP Server ──────────────────────────────────────────────────────────────
 

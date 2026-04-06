@@ -1,0 +1,43 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.msartem/copilot-cowork-mcp",
+  "description": "Connect GitHub Copilot CLI to Microsoft 365 Copilot (Cowork) — query emails, calendar, Teams, meetings, documents, send messages, and send images via Teams or as email attachments, all from the terminal.",
+  "repository": {
+    "url": "https://github.com/msartem/copilot_cowork_mcp",
+    "source": "github"
+  },
+  "version": "1.0.0",
+  "packages": [
+    {
+      "registryType": "pypi",
+      "identifier": "copilot-cowork-mcp",
+      "version": "1.0.0",
+      "transport": {
+        "type": "stdio"
+      },
+      "environmentVariables": [
+        {
+          "description": "Manual JWT token override (skips browser auth)",
+          "isRequired": false,
+          "format": "string",
+          "isSecret": true,
+          "name": "COWORK_TOKEN"
+        },
+        {
+          "description": "Azure AD tenant ID (default: common)",
+          "isRequired": false,
+          "format": "string",
+          "isSecret": false,
+          "name": "COWORK_TENANT"
+        },
+        {
+          "description": "Browser for sign-in: msedge, chrome, or chromium",
+          "isRequired": false,
+          "format": "string",
+          "isSecret": false,
+          "name": "COWORK_BROWSER"
+        }
+      ]
+    }
+  ]
+}

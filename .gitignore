@@ -3,3 +3,7 @@ __pycache__/
 .env
 .venv/
 venv/
+dist/
+build/
+*.egg-info/
+.mcpregistry_*_token

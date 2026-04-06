@@ -1,0 +1,42 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "copilot-cowork-mcp"
+version = "1.0.0"
+description = "Connect GitHub Copilot CLI to Microsoft 365 Copilot (Cowork) — query emails, calendar, Teams, meetings, documents, send messages, and send images via Teams or as email attachments, all from the terminal."
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.10"
+authors = [
+    { name = "msartem" },
+]
+keywords = ["mcp", "copilot", "microsoft-365", "teams", "cowork"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Communications :: Chat",
+    "Topic :: Office/Business",
+]
+dependencies = [
+    "fastmcp>=3.0",
+    "requests>=2.28",
+    "playwright>=1.40",
+]
+
+[project.urls]
+Homepage = "https://github.com/msartem/copilot_cowork_mcp"
+Repository = "https://github.com/msartem/copilot_cowork_mcp"
+Issues = "https://github.com/msartem/copilot_cowork_mcp/issues"
+
+[project.scripts]
+copilot-cowork-mcp = "copilot_cowork_mcp.__main__:main"
+
+[tool.setuptools.packages.find]
+include = ["copilot_cowork_mcp*"]
