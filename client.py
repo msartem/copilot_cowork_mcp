@@ -93,15 +93,23 @@ class CoworkSession:
         # Pending action approval (set by `ta` event, consumed by approve_action)
         self.pending_approval: dict | None = None
 
-    def send(self, message: str) -> str:
-        """Send a message and return the full text response."""
+    def send(self, message: str, file_paths: list[str] | None = None) -> str:
+        """Send a message and return the full text response.
+
+        Args:
+            message: Text message to send.
+            file_paths: Optional list of local file paths to upload to the
+                        Cowork workspace before sending the message.
+        """
+        if file_paths:
+            for path in file_paths:
+                self.upload_file(path)
+
         self._turn += 1
 
         if self._turn == 1:
-            # First message: POST /v1/subscribe (combined send + SSE)
             return self._subscribe_with_message(message)
         else:
-            # Follow-up: send via POST /v1/messages, read from existing SSE
             return self._followup(message)
 
     def reset(self):
@@ -141,6 +149,35 @@ class CoworkSession:
 
         # Wait for the result on the existing SSE stream
         return self._wait_for_response()
+
+    def upload_file(self, file_path: str) -> dict:
+        """Upload a local file to the Cowork workspace input directory.
+
+        The file becomes available at /mnt/workspace/input/<filename> inside
+        the Cowork container, where the agent can read and attach it.
+
+        Args:
+            file_path: Absolute path to the file on disk.
+
+        Returns:
+            API response dict with file_id, workspace_path, etc.
+        """
+        import mimetypes as mt
+
+        url = f"https://{self.runtime}/v1/conversations/{self.conversation_id}/files"
+        hdrs = {
+            "Authorization": f"Bearer {self.token}",
+            "x-ms-weave-auth": f"Bearer {self.token}",
+            "Origin": "https://m365.cloud.microsoft",
+            "x-conversation-id": self.conversation_id,
+        }
+        mime_type, _ = mt.guess_type(file_path)
+        filename = os.path.basename(file_path)
+        with open(file_path, "rb") as f:
+            files = {"file": (filename, f, mime_type or "application/octet-stream")}
+            resp = requests.post(url, headers=hdrs, files=files, timeout=60)
+        resp.raise_for_status()
+        return resp.json()
 
     # ── First message: POST /v1/subscribe ────────────────────────────────
 
