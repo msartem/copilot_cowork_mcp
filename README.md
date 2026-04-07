@@ -2,7 +2,7 @@
 
 An MCP server that connects [GitHub Copilot CLI](https://docs.github.com/copilot/concepts/agents/about-copilot-cli) to **Microsoft 365 Copilot** (Cowork).
 
-Ask questions about your emails, calendar, Teams messages, meetings, documents, contacts, and org data — all from the terminal. Send Teams messages, emails, and perform other actions too.
+Ask questions about your emails, calendar, Teams messages, meetings, documents, contacts, and org data — all from the terminal. Send Teams messages (with image attachments), emails (with attachments), and perform other actions too.
 
 ## Requirements
 
@@ -26,6 +26,8 @@ Ask questions about your emails, calendar, Teams messages, meetings, documents, 
    copilot
    ```
 
+   The `.mcp.json` in the repo auto-configures the MCP server.
+
 3. **Sign in** (first time only)
 
    Copilot will automatically call `cowork_sign_in` when needed. An Edge
@@ -39,10 +41,25 @@ Ask questions about your emails, calendar, Teams messages, meetings, documents, 
    What meetings do I have tomorrow?
    Send a Teams message to myself saying hello from CLI
    Send an email to John saying the report is ready
+   Send this image to my Teams DM: ./screenshot.png
    ```
 
 After first sign-in, auth is silent via cached refresh tokens (~90 day
 lifetime, auto-renewing). No browser window on subsequent uses.
+
+### Alternative: Plugin Install
+
+If you prefer the Copilot CLI plugin system (works from any directory):
+
+```bash
+# Install the plugin (clones repo + registers MCP server)
+/plugin install msartem/copilot_cowork_mcp
+
+# Still need to install Python dependencies from the cloned location
+pip install -r ~/.copilot/installed-plugins/copilot_cowork_mcp/requirements.txt
+```
+
+> **Note**: Since this is a Python project, both approaches require `git clone` + `pip install`. The plugin approach manages the clone and MCP config for you, so the server is available globally instead of only from the repo directory.
 
 ## How It Works
 
@@ -65,6 +82,7 @@ You → Copilot CLI → cowork MCP → M365 Copilot → your M365 data
 |------|-------------|
 | `cowork_sign_in` | Sign in to Microsoft 365 (opens Edge, one-time) |
 | `cowork_send_message` | Send a message to M365 Copilot (multi-turn) |
+| `cowork_send_image` | Send an image (with optional text) to M365 Copilot — for Teams messages or email attachments |
 | `cowork_action_approve` | Approve and execute a pending action (send email, Teams message, etc.) |
 | `cowork_new_session` | Start a fresh conversation |
 | `cowork_session_info` | Show session state (user, runtime, turn count) |
