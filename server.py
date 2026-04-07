@@ -101,6 +101,15 @@ def _force_token_refresh():
     _token_ts = 0
 
 
+def _reset_session():
+    """Discard the current session so the next _get_session() creates a fresh one."""
+    global _session, _token_ts
+    if _session:
+        _session._close_stream()
+    _session = None
+    _token_ts = 0
+
+
 # ── Tools ────────────────────────────────────────────────────────────────────
 
 @mcp.tool()
@@ -159,8 +168,14 @@ def cowork_send_message(message: str) -> str:
     """
     try:
         session = _get_session()
-        return session.send(message)
+        result = session.send(message)
+        if "timeout" in result.lower() and "retry" in result.lower():
+            _reset_session()
+            session = _get_session()
+            return session.send(message)
+        return result
     except Exception as e:
+        _reset_session()
         if "401" in str(e) or "unauthorized" in str(e).lower():
             _force_token_refresh()
             try:
@@ -192,14 +207,31 @@ def cowork_send_image(file_path: str, message: str = "") -> str:
     if not os.path.isfile(file_path):
         return f"Error: File not found: {file_path}"
 
+    # Check size early — Cowork's nginx proxy rejects uploads over ~1 MB
+    file_size = os.path.getsize(file_path)
+    max_bytes = 1024 * 1024  # 1 MB
+    if file_size > max_bytes:
+        return (
+            f"Error: File too large ({file_size / 1024:.0f} KB). "
+            f"Maximum upload size is {max_bytes // 1024} KB. "
+            f"Convert to JPEG and resize to stay under the limit."
+        )
+
     # Default message if none provided
     if not message:
         message = f"I uploaded the file {os.path.basename(file_path)}. Please use it as requested."
 
     try:
         session = _get_session()
-        return session.send(message, file_paths=[file_path])
+        result = session.send(message, file_paths=[file_path])
+        if "timeout" in result.lower() and "retry" in result.lower():
+            _reset_session()
+            session = _get_session()
+            return session.send(message, file_paths=[file_path])
+        return result
     except Exception as e:
+        # Any error (413, network, etc.) likely leaves the session broken
+        _reset_session()
         if "401" in str(e) or "unauthorized" in str(e).lower():
             _force_token_refresh()
             try:

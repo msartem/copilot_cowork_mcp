@@ -103,7 +103,12 @@ class CoworkSession:
         """
         if file_paths:
             for path in file_paths:
-                self.upload_file(path)
+                try:
+                    self.upload_file(path)
+                except Exception:
+                    # Failed upload may taint the conversation — start fresh
+                    self.reset()
+                    raise
 
         self._turn += 1
 
@@ -161,8 +166,22 @@ class CoworkSession:
 
         Returns:
             API response dict with file_id, workspace_path, etc.
+
+        Raises:
+            ValueError: If the file exceeds the size limit.
+            requests.HTTPError: If the upload fails.
         """
         import mimetypes as mt
+
+        MAX_FILE_SIZE = 1024 * 1024  # 1 MB
+
+        file_size = os.path.getsize(file_path)
+        if file_size > MAX_FILE_SIZE:
+            raise ValueError(
+                f"File too large ({file_size / 1024:.0f} KB). "
+                f"Maximum upload size is {MAX_FILE_SIZE // 1024} KB. "
+                f"Convert to JPEG and resize to stay under the limit."
+            )
 
         url = f"https://{self.runtime}/v1/conversations/{self.conversation_id}/files"
         hdrs = {
@@ -356,6 +375,22 @@ class CoworkSession:
             if not data.get("ok", True):
                 chunks.append(f"\n[Tool error: {data.get('tn', 'unknown')}]\n")
 
+        elif event_type == "error":
+            # Backend error — surface the message and finish
+            err_msg = data.get("err", "Unknown error")
+            code = data.get("code", "")
+            chunks.clear()
+            chunks.append(f"Cowork error: {err_msg}" + (f" [{code}]" if code else ""))
+            return True
+
+        elif event_type == "rl":
+            # Run-level end — if status is fail, finish the response
+            if data.get("st") == "fail":
+                if not chunks:
+                    err_msg = data.get("err", "Request failed")
+                    chunks.append(f"Cowork error: {err_msg}")
+                return True
+
         elif event_type == "fr":
             return True  # signals end of response
 
@@ -368,7 +403,9 @@ class CoworkSession:
             result = self._response_queue.get(timeout=timeout)
             return result if result else "(empty response)"
         except queue.Empty:
-            return "(timeout waiting for Cowork response)"
+            # Session is likely dead — reset so next call starts fresh
+            self.reset()
+            return "(timeout waiting for Cowork response — session reset, please retry)"
 
     # ── Cleanup ──────────────────────────────────────────────────────────
 
