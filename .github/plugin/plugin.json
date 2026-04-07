@@ -1,0 +1,15 @@
+{
+  "name": "copilot-cowork-mcp",
+  "description": "Connect to Microsoft 365 Copilot (Cowork) — query emails, calendar, Teams, meetings, documents, send messages, and send images via Teams or as email attachments.",
+  "version": "1.0.0",
+  "author": {
+    "name": "msartem",
+    "url": "https://github.com/msartem"
+  },
+  "homepage": "https://github.com/msartem/copilot_cowork_mcp",
+  "repository": "https://github.com/msartem/copilot_cowork_mcp",
+  "license": "MIT",
+  "keywords": ["microsoft-365", "teams", "cowork", "email", "calendar", "outlook"],
+  "category": "productivity",
+  "mcpServers": ".mcp.json"
+}
